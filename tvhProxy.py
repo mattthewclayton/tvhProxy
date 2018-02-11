@@ -3,6 +3,7 @@ from gevent import monkey; monkey.patch_all()
 import time
 import os
 import requests
+import json
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, request, jsonify, abort, render_template
 
@@ -50,7 +51,7 @@ def status():
 @app.route('/lineup.json')
 def lineup():
     lineup = []
-
+	
     for c in _get_channels():
         if c['enabled']:
             url = '%s/stream/channel/%s?profile=%s&weight=%s' % (config['tvhURL'], c['uuid'], config['streamProfile'],int(config['tvhWeight']))
@@ -60,7 +61,7 @@ def lineup():
                            'URL': url
                            })
 
-    return jsonify(lineup)
+    return json.dumps(lineup)
 
 
 @app.route('/lineup.post', methods=['GET', 'POST'])
