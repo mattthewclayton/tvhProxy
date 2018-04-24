@@ -4,6 +4,7 @@ import time
 import os
 import requests
 import json
+import logging
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, request, jsonify, abort, render_template
 
@@ -19,6 +20,8 @@ config = {
     'chunkSize': os.environ.get('TVH_CHUNK_SIZE') or 1024*1024,  # usually you don't need to edit this
     'streamProfile': os.environ.get('TVH_PROFILE') or 'pass'  # specifiy a stream profile that you want to use for adhoc transcoding in tvh, e.g. mp4
 }
+
+logging.info('Config: %s', config)
 
 discoverData = {
     'FriendlyName': 'tvhProxy',
@@ -55,7 +58,8 @@ def lineup():
     for c in _get_channels():
         if c['enabled']:
             url = '%s/stream/channel/%s?profile=%s&weight=%s' % (config['tvhURL'], c['uuid'], config['streamProfile'],int(config['tvhWeight']))
-
+            logging.info('lineup -> c -> url: %s', url)
+	
             lineup.append({'GuideNumber': str(c['number']),
                            'GuideName': c['name'],
                            'URL': url
@@ -76,9 +80,11 @@ def device():
 
 def _get_channels():
     url = '%s/api/channel/grid?start=0&limit=999999' % config['tvhURL']
+    logging.info('_get_channels -> url: %s', url)
 
     try:
         r = requests.get(url)
+	logging.info('_get_channels -> r: %s', r)
         return r.json()['entries']
 
     except Exception as e:
