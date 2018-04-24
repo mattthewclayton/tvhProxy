@@ -8,6 +8,8 @@ import logging
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, request, jsonify, abort, render_template
 
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 app = Flask(__name__)
 
 # URL format: <protocol>://<username>:<password>@<hostname>:<port>, example: https://test:1234@localhost:9981
@@ -58,7 +60,7 @@ def lineup():
     for c in _get_channels():
         if c['enabled']:
             url = '%s/stream/channel/%s?profile=%s&weight=%s' % (config['tvhURL'], c['uuid'], config['streamProfile'],int(config['tvhWeight']))
-            logging.info('lineup -> c -> url: %s', url)
+            logging.debug('lineup -> c -> url: %s', url)
 	
             lineup.append({'GuideNumber': str(c['number']),
                            'GuideName': c['name'],
@@ -80,11 +82,11 @@ def device():
 
 def _get_channels():
     url = '%s/api/channel/grid?start=0&limit=999999' % config['tvhURL']
-    logging.info('_get_channels -> url: %s', url)
+    logging.debug('_get_channels -> url: %s', url)
 
     try:
         r = requests.get(url)
-	logging.info('_get_channels -> r: %s', r)
+	logging.debug('_get_channels -> r: %s', r)
         return r.json()['entries']
 
     except Exception as e:
