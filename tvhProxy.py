@@ -4,26 +4,21 @@ import time
 import os
 import requests
 import json
-import logging, sys
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, request, jsonify, abort, render_template
 
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
 app = Flask(__name__)
 
-# URL format: <protocol>://<username>:<password>@<hostname>:<port>, example: https://test:1234@localhost:9981
+# URL format: <protocol>://<hostname>:<port>, example: https://localhost:9981
 config = {
     'bindAddr': os.environ.get('TVH_BINDADDR') or '',
-    'tvhURL': os.environ.get('TVH_URL') or 'http://test:test@localhost:9981',
+    'tvhURL': os.environ.get('TVH_URL') or 'http://localhost:9981',
     'tvhProxyURL': os.environ.get('TVH_PROXY_URL') or 'http://localhost',
     'tunerCount': os.environ.get('TVH_TUNER_COUNT') or 6,  # number of tuners in tvh
     'tvhWeight': os.environ.get('TVH_WEIGHT') or 300,  # subscription priority
     'chunkSize': os.environ.get('TVH_CHUNK_SIZE') or 1024*1024,  # usually you don't need to edit this
     'streamProfile': os.environ.get('TVH_PROFILE') or 'pass'  # specifiy a stream profile that you want to use for adhoc transcoding in tvh, e.g. mp4
 }
-
-logging.info('Config: %s', config)
 
 discoverData = {
     'FriendlyName': 'tvhProxy',
@@ -60,7 +55,6 @@ def lineup():
     for c in _get_channels():
         if c['enabled']:
             url = '%s/stream/channel/%s?profile=%s&weight=%s' % (config['tvhURL'], c['uuid'], config['streamProfile'],int(config['tvhWeight']))
-            logging.debug('lineup -> c -> url: %s', url)
 	
             lineup.append({'GuideNumber': str(c['number']),
                            'GuideName': c['name'],
@@ -82,11 +76,9 @@ def device():
 
 def _get_channels():
     url = '%s/api/channel/grid?start=0&limit=999999' % config['tvhURL']
-    logging.debug('_get_channels -> url: %s', url)
 
     try:
         r = requests.get(url)
-	logging.debug('_get_channels -> r: %s', r)
         return r.json()['entries']
 
     except Exception as e:
