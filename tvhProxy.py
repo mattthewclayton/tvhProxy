@@ -4,7 +4,7 @@ import time
 import os
 import requests
 import json
-import logging
+import logging, sys
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, request, jsonify, abort, render_template
 
